@@ -1,7 +1,37 @@
 package main
 
-import "fmt"
+import (
+	"context"
+	"flag"
+	"log"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/mohammadReza-kaspour/HotelReservationBackend/api"
+	"github.com/mohammadReza-kaspour/HotelReservationBackend/db"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+const dbUri = "mongodb://localhost:27017"
 
 func main() {
-	fmt.Println("initialized")
+	listenAddr := flag.String("listenAddr", ":5000", "the listen addr of api server")
+	flag.Parse()
+
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(dbUri))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	//user store and handlers initialization
+	userStore := db.NewMongoUserStore(client)
+	userHandler := api.NewUserHandler(userStore)
+
+	app := fiber.New()
+	apiv1 := app.Group("/api/v1")
+
+	apiv1.Get("/users", userHandler.HandleGetUsers)
+	apiv1.Get("/user/:id", userHandler.HandleGetUser)
+
+	app.Listen(*listenAddr)
 }
