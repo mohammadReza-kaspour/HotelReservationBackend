@@ -23,6 +23,24 @@ type User struct {
 	EncryptedPassword string             `bson:"encryptedPassword" json:"-"`
 }
 
+type UpdateUserParams struct {
+	FirstName string `bson:"firstName" json:"firstName"`
+	LastName  string `bson:"lastName" json:"lastName"`
+}
+
+func (params UpdateUserParams) Validate() map[string]string {
+	errors := map[string]string{}
+
+	if len(params.FirstName) < minFirstNameLength {
+		errors["firstname"] = fmt.Sprintf("firstname should be at least %d characters", minFirstNameLength)
+	}
+	if len(params.LastName) < minLastNameLength {
+		errors["lastname"] = fmt.Sprintf("lastname should be at least %d characters", minLastNameLength)
+	}
+
+	return errors
+}
+
 type CreateUserParams struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
@@ -30,21 +48,24 @@ type CreateUserParams struct {
 	Password  string `json:"password"`
 }
 
-func (params CreateUserParams) Validate() error {
+func (params CreateUserParams) Validate() map[string]string {
+	errors := map[string]string{}
+
 	if len(params.FirstName) < minFirstNameLength {
-		return fmt.Errorf("firstname should be at least %d characters", minFirstNameLength)
+		errors["firstname"] = fmt.Sprintf("firstname should be at least %d characters", minFirstNameLength)
 	}
 	if len(params.LastName) < minLastNameLength {
-		return fmt.Errorf("lastname should be at least %d characters", minLastNameLength)
+		errors["lastname"] = fmt.Sprintf("lastname should be at least %d characters", minLastNameLength)
 	}
 	if len(params.Password) < minPasswordLength {
-		return fmt.Errorf("password should be at least %d characters", minPasswordLength)
+		errors["password"] = fmt.Sprintf("password should be at least %d characters", minPasswordLength)
 	}
 	if !isValidEmail(params.Email) {
-		return fmt.Errorf("email is invalid")
+		errors["email"] = "email is invalid"
 	}
-	return nil
+	return errors
 }
+
 func isValidEmail(email string) bool {
 	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	return emailRegex.MatchString(email)
