@@ -12,7 +12,12 @@ import (
 
 const userCollection = "users"
 
+type Dropper interface {
+	Drop(ctx context.Context) error
+}
 type UserStore interface {
+	Dropper
+
 	GetUserById(ctx context.Context, id string) (*types.User, error)
 	GetUsers(ctx context.Context) ([]*types.User, error)
 	InsertUser(ctx context.Context, user *types.User) (*types.User, error)
@@ -25,13 +30,15 @@ type MongoUserStore struct {
 	collection *mongo.Collection
 }
 
-func NewMongoUserStore(client *mongo.Client) *MongoUserStore {
+func NewMongoUserStore(client *mongo.Client, dbName string) *MongoUserStore {
 	return &MongoUserStore{
 		client:     client,
 		collection: client.Database(dbName).Collection(userCollection),
 	}
 }
-
+func (s *MongoUserStore) Drop(ctx context.Context) error {
+	return s.collection.Drop(ctx)
+}
 func (s *MongoUserStore) GetUserById(ctx context.Context, id string) (*types.User, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -96,9 +103,9 @@ func (s *MongoUserStore) UpdateUser(ctx context.Context, id string, params *type
 		return err
 	}
 
-	mongoFilter := bson.D{{Key:"_id", Value:oid}}
+	mongoFilter := bson.D{{Key: "_id", Value: oid}}
 	mongoUpdate := bson.D{
-		{Key:"$set", Value:params},
+		{Key: "$set", Value: params},
 	}
 
 	_, err = s.collection.UpdateOne(ctx, mongoFilter, mongoUpdate)

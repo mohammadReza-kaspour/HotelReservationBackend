@@ -1,0 +1,11 @@
+?   	github.com/mohammadReza-kaspour/HotelReservationBackend	[no test files]
+=== RUN   TestPostUser
+    user_handler_test.go:78: expected status 200 but got 422 Unprocessable Entity
+--- dropping collection ---
+--- dropped collection successfully ---
+--- FAIL: TestPostUser (0.01s)
+FAIL
+FAIL	github.com/mohammadReza-kaspour/HotelReservationBackend/api	1.364s
+?   	github.com/mohammadReza-kaspour/HotelReservationBackend/db	[no test files]
+?   	github.com/mohammadReza-kaspour/HotelReservationBackend/types	[no test files]
+FAIL

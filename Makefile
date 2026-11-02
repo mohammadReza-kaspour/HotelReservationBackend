@@ -5,4 +5,4 @@ run: build
 	@./bin/api.exe
 
 test:
-	@go test -v .
+	@clear | go test -v ./... 2>&1 | tee test-output.log
