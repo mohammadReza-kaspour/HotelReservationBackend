@@ -67,7 +67,7 @@ func TestPostUser(t *testing.T) {
 	}
 
 	req := httptest.NewRequest("POST", "/", bytes.NewReader(marshalBody))
-	// req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Content-Type", "application/json")
 
 	callResponse, err := app.Test(req)
 	if err != nil {
