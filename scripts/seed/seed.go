@@ -23,10 +23,11 @@ var (
 type seedHotelAndRoomParams struct {
 	name     string
 	location string
+	rate     int
 }
 
 func seedHotelAndRooms(params *seedHotelAndRoomParams) {
-	hotel := types.NewHotel(&types.CreateHotelParams{Name: params.name, Location: params.location})
+	hotel := types.NewHotel(&types.CreateHotelParams{Name: params.name, Location: params.location , Rate: params.rate})
 
 	rooms := []*types.Room{
 		types.NewRoom(&types.CreateRoomParams{
@@ -54,15 +55,15 @@ func seedHotelAndRooms(params *seedHotelAndRoomParams) {
 		log.Fatal(err)
 	}
 
-	fmt.Println("\n\n" , params.name , params.location)
-	fmt.Printf("%+v\n" , hotelInsertResult)
+	fmt.Println("\n\n", params.name, params.location)
+	fmt.Printf("%+v\n", hotelInsertResult)
 	for _, room := range rooms {
 		room.HotelId = hotelInsertResult.Id
 		roomInsertResult, err := roomStore.InsertRoom(ctx, room)
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("%+v\n" , roomInsertResult)
+		fmt.Printf("%+v\n", roomInsertResult)
 	}
 }
 
@@ -70,7 +71,7 @@ func main() {
 	hotelStore.Drop(ctx)
 	roomStore.Drop(ctx)
 
-	seedHotelAndRooms(&seedHotelAndRoomParams{name: "Espinas Palac Hotel" , location: "Tehran"})
-	seedHotelAndRooms(&seedHotelAndRoomParams{name: "Abbasi Hotel" , location: "Isfahan"})
-	seedHotelAndRooms(&seedHotelAndRoomParams{name: "Toranj Marine Hotel" , location: "Kish Island"})
+	seedHotelAndRooms(&seedHotelAndRoomParams{name: "Espinas Palac Hotel", location: "Tehran" , rate: 3})
+	seedHotelAndRooms(&seedHotelAndRoomParams{name: "Abbasi Hotel", location: "Isfahan" , rate: 4})
+	seedHotelAndRooms(&seedHotelAndRoomParams{name: "Toranj Marine Hotel", location: "Kish Island" , rate: 1})
 }

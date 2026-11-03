@@ -7,12 +7,14 @@ type Hotel struct {
 	Name     string               `bson:"name" json:"name"`
 	Location string               `bson:"location" json:"location"`
 	Rooms    []primitive.ObjectID `bson:"rooms" json:"rooms"`
+	Rate     int                  `bson:"rate" json:"rate"`
 }
 
-func NewHotel(parms *CreateHotelParams) *Hotel {
+func NewHotel(params *CreateHotelParams) *Hotel {
 	return &Hotel{
-		Name:     parms.Name,
-		Location: parms.Location,
+		Name:     params.Name,
+		Location: params.Location,
+		Rate: params.Rate,
 		Rooms:    []primitive.ObjectID{},
 	}
 }
@@ -20,6 +22,7 @@ func NewHotel(parms *CreateHotelParams) *Hotel {
 type CreateHotelParams struct {
 	Name     string `bson:"name" json:"name"`
 	Location string `bson:"location" json:"location"`
+	Rate     int `bson:"rate" json:"rate"`
 }
 
 type UpdateHotelParams struct {

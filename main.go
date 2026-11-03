@@ -29,6 +29,9 @@ func main() {
 	userStore := db.NewMongoUserStore(client , dbName)
 	userHandler := api.NewUserHandler(userStore)
 
+	hotelStore:= db.NewMongoHotelStore(client , dbName)
+	hotelHandler := api.NewHotelHandler(hotelStore)
+
 	app := fiber.New(config)
 	apiv1 := app.Group("/api/v1")
 
@@ -37,6 +40,9 @@ func main() {
 	apiv1.Post("/user", userHandler.HandlePostUser)
 	apiv1.Delete("/user/:id", userHandler.HandleDeleteUser)
 	apiv1.Put("/user/:id", userHandler.HandlePutUser)
+
+	apiv1.Get("/hotel", hotelHandler.HandleGetHotels)
+
 
 	app.Listen(*listenAddr)
 }
