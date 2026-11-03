@@ -10,11 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const userCollection = "users"
-
-type Dropper interface {
-	Drop(ctx context.Context) error
-}
 type UserStore interface {
 	Dropper
 

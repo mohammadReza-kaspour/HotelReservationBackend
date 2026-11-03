@@ -9,19 +9,21 @@ type Hotel struct {
 	Rooms    []primitive.ObjectID `bson:"rooms" json:"rooms"`
 }
 
-type RoomType int
-const (
-	_ RoomType = iota
-	SingleRoomType
-	DoubleRoomType
-	SeaSideRoomType
-	DeluxeRoomType
-)
+func NewHotel(parms *CreateHotelParams) *Hotel {
+	return &Hotel{
+		Name:     parms.Name,
+		Location: parms.Location,
+		Rooms:    []primitive.ObjectID{},
+	}
+}
 
-type Room struct {
-	Id primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Type RoomType `bson:"type" json:"type"`
-	BasePrice float64 `bson:"basePrice" json:"basePrice"`
-	Price float64 `bson:"price" json:"price"`
-	HotelId primitive.ObjectID `bson:"hotelId" json:"hotelId"`
+type CreateHotelParams struct {
+	Name     string `bson:"name" json:"name"`
+	Location string `bson:"location" json:"location"`
+}
+
+type UpdateHotelParams struct {
+	Id       primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Name     string             `bson:"name" json:"name"`
+	Location string             `bson:"location" json:"location"`
 }

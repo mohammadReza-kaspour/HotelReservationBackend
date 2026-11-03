@@ -12,12 +12,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/db"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/types"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
-	dbUri  = "mongodb://localhost:27017"
+	//todo!! => must move to dotenv
 	dbName = "hotelReservation_test"
 )
 
@@ -29,10 +27,7 @@ type userStore struct {
 }
 
 func newMongoUserStore(t *testing.T) *userStore {
-	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(dbUri))
-	if err != nil {
-		log.Fatal(err)
-	}
+	client := db.NewMongoDbClient()
 	return &userStore{
 		UserStore: db.NewMongoUserStore(client, dbName),
 	}
