@@ -13,14 +13,20 @@ import (
 // todo!! => must move to dotenv
 const dbName = "hotelReservation"
 
-func main() {
-	ctx := context.Background()
-	client := db.NewMongoDbClient()
+var (
+	ctx        = context.Background()
+	client     = db.NewMongoDbClient()
+	hotelStore = db.NewMongoHotelStore(client, dbName)
+	roomStore  = db.NewMongoRoomStore(client, hotelStore, dbName)
+)
 
-	hotelStore := db.NewMongoHotelStore(client, dbName)
-	roomStore := db.NewMongoRoomStore(client, hotelStore, dbName)
+type seedHotelAndRoomParams struct {
+	name     string
+	location string
+}
 
-	hotel := types.NewHotel(&types.CreateHotelParams{Name: "Espinas Palace", Location: "Tehran"})
+func seedHotelAndRooms(params *seedHotelAndRoomParams) {
+	hotel := types.NewHotel(&types.CreateHotelParams{Name: params.name, Location: params.location})
 
 	rooms := []*types.Room{
 		types.NewRoom(&types.CreateRoomParams{
@@ -48,13 +54,23 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(hotelInsertResult)
+	fmt.Println("\n\n" , params.name , params.location)
+	fmt.Printf("%+v\n" , hotelInsertResult)
 	for _, room := range rooms {
 		room.HotelId = hotelInsertResult.Id
 		roomInsertResult, err := roomStore.InsertRoom(ctx, room)
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(roomInsertResult)
+		fmt.Printf("%+v\n" , roomInsertResult)
 	}
+}
+
+func main() {
+	hotelStore.Drop(ctx)
+	roomStore.Drop(ctx)
+
+	seedHotelAndRooms(&seedHotelAndRoomParams{name: "Espinas Palac Hotel" , location: "Tehran"})
+	seedHotelAndRooms(&seedHotelAndRoomParams{name: "Abbasi Hotel" , location: "Isfahan"})
+	seedHotelAndRooms(&seedHotelAndRoomParams{name: "Toranj Marine Hotel" , location: "Kish Island"})
 }
