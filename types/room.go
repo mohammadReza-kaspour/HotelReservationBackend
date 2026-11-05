@@ -15,7 +15,6 @@ const (
 type Room struct {
 	Id        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Type      RoomType           `bson:"type" json:"type"`
-	BasePrice float64            `bson:"basePrice" json:"basePrice"`
 	Price     float64            `bson:"price" json:"price"`
 	HotelId   primitive.ObjectID `bson:"hotelId" json:"hotelId"`
 }
@@ -23,7 +22,6 @@ type Room struct {
 func NewRoom(params *CreateRoomParams) *Room {
 	return &Room{
 		Type:      params.Type,
-		BasePrice: params.BasePrice,
 		Price:     params.Price,
 		HotelId:   params.HotelId,
 	}
@@ -31,7 +29,6 @@ func NewRoom(params *CreateRoomParams) *Room {
 
 type CreateRoomParams struct {
 	Type      RoomType           `bson:"type" json:"type"`
-	BasePrice float64            `bson:"basePrice" json:"basePrice"`
 	Price     float64            `bson:"price" json:"price"`
 	HotelId   primitive.ObjectID `bson:"hotelId" json:"hotelId"`
 }

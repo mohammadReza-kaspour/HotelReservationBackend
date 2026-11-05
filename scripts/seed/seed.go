@@ -32,20 +32,17 @@ func seedHotelAndRooms(params *seedHotelAndRoomParams) {
 	rooms := []*types.Room{
 		types.NewRoom(&types.CreateRoomParams{
 			Type:      types.SingleRoomType,
-			BasePrice: 99.9,
-			Price:     0.0,
+			Price:     99.9,
 			HotelId:   primitive.NilObjectID,
 		}),
 		types.NewRoom(&types.CreateRoomParams{
 			Type:      types.DeluxeRoomType,
-			BasePrice: 199.9,
-			Price:     0.0,
+			Price:     199.9,
 			HotelId:   primitive.NilObjectID,
 		}),
 		types.NewRoom(&types.CreateRoomParams{
 			Type:      types.SeaSideRoomType,
-			BasePrice: 122.9,
-			Price:     0.0,
+			Price:     122.9,
 			HotelId:   primitive.NilObjectID,
 		}),
 	}

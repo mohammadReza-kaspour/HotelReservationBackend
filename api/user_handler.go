@@ -1,8 +1,11 @@
 package api
 
 import (
+	"errors"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/db"
+	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/jwt"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/types"
 )
 
@@ -24,9 +27,12 @@ func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
 	return c.JSON(users)
 }
 func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
-	id := c.Params("id")
+	userInfo , ok := c.Locals("user").(*jwt.CustomClaims)
+	if !ok {
+		return errors.New("userInfo not found")
+	}
 
-	user, err := h.userStore.GetUserById(c.Context(), id)
+	user, err := h.userStore.GetUserById(c.Context(), userInfo.UserID)
 	if err != nil {
 		return err
 	}

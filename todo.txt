@@ -1,0 +1,3 @@
+1- error handling is not good now i implemented basic erro handler but every error should has its own error code from error factory
+2- need rbac system for admin vs user seperation
+3-
