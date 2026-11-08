@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"net/http"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/api"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/db"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/middlewares/auth"
+	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/localErrors"
 )
 
 // todo!! => must move to dotenv
@@ -15,9 +17,12 @@ const dbName = "hotelReservation"
 
 var config = fiber.Config{
 	ErrorHandler: func(c *fiber.Ctx, err error) error {
-		return c.Status(http.StatusInternalServerError).JSON(map[string]string{
-			"error": err.Error(),
-		})
+		if apiError, ok := err.(*localErrors.ErrorBase); ok {
+			return c.Status(apiError.Code).JSON(apiError)
+		}
+
+		apiError := localErrors.NewError(http.StatusInternalServerError, err.Error(), map[string]any{})
+		return c.Status(apiError.Code).JSON(apiError)
 	},
 }
 
@@ -39,9 +44,12 @@ func main() {
 	app := fiber.New(config)
 
 	app.Post("/signup", authHandler.SignUp)
-	app.Post("/signin", authHandler.SignIn) //not implemented yet
+	app.Post("/signin", authHandler.SignIn)              //not implemented yet
 	app.Post("/refresh-token", authHandler.RefreshToken) //not implemented yet
-	// app.Get("/developer", auth.VerifyJwtTokenMiddleware)
+	// app.Get("/developer", func(c *fiber.Ctx) error {
+	// 	return errors.New("error occured")
+	// 	return c.Status(200).SendString("ok")
+	// })
 
 	apiv1 := app.Group("/api/v1", auth.VerifyJwtTokenMiddleware)
 	apiv1.Get("/users", userHandler.HandleGetUsers)
