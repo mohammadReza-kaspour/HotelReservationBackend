@@ -15,3 +15,10 @@ func NewErrorUnAuthorized() *ErrorBase {
 		map[string]any{},
 	)
 }
+func NewErrorBadRequest(message string) *ErrorBase {
+	return newError(
+		http.StatusBadRequest,
+		message,
+		map[string]any{},
+	)
+}

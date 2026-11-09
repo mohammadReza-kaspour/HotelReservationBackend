@@ -1,3 +1,4 @@
+** create response pattern for success result like error dto 
 ** make all routes jwt auth compatible
 ** in types instead of object id as type use string and convert data inside storer
 ** implement hotel and rooms routes and booking route with capability of booking and get them and canceling it
@@ -9,7 +10,6 @@
 ** all data layer data should be seperated from db driver(bson as input or objectid types in models)
 ** add pagination to all list return routes with mongodb options in form of size,offset and show total count
 ** set page total count in result dto
-** create response pattern for success result like error dto 
 ** turn get data like search that let user insert fields and search and get data based on them
 ** ensure that all configs be only in config folder and finally turn all to godotenv and create both .env and .env.default(deploy template)
 ** implement proper logging system
