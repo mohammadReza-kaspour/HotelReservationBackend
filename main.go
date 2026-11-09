@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"net/http"
 
@@ -17,11 +16,18 @@ const dbName = "hotelReservation"
 
 var config = fiber.Config{
 	ErrorHandler: func(c *fiber.Ctx, err error) error {
+		// Check if it's a Api error
 		if apiError, ok := err.(*localErrors.ErrorBase); ok {
 			return c.Status(apiError.Code).JSON(apiError)
 		}
 
-		apiError := localErrors.NewError(http.StatusInternalServerError, err.Error(), map[string]any{})
+		// Check if it's a Fiber error
+        if fiberError, ok := err.(*fiber.Error); ok {
+            apiError := localErrors.NewErrorCustom(fiberError.Code, fiberError.Message, map[string]any{})
+            return c.Status(apiError.Code).JSON(apiError)
+        }
+
+		apiError := localErrors.NewErrorCustom(http.StatusInternalServerError, err.Error(), map[string]any{})
 		return c.Status(apiError.Code).JSON(apiError)
 	},
 }

@@ -1,16 +1,22 @@
 package localErrors
 
+import "uuid"
+
 type ErrorBase struct {
-	Code    int
-	Message string
-	Meta    map[string]any
+	IsSuccess bool
+	TraceId   string
+	Code      int
+	Message   string
+	Meta      map[string]any
 }
 
-func NewError(code int, message string, meta map[string]any) *ErrorBase {
+func newError(code int, message string, meta map[string]any) *ErrorBase {
 	return &ErrorBase{
-		Code:    code,
-		Message: message,
-		Meta:    meta,
+		IsSuccess: false,
+		TraceId:   uuid.NewV4().String(),
+		Code:      code,
+		Message:   message,
+		Meta:      meta,
 	}
 }
 func (e *ErrorBase) Error() string {

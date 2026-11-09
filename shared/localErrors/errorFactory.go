@@ -4,12 +4,12 @@ import (
 	"net/http"
 )
 
-func ErrorCustom(code int, message string, meta map[string]any) *ErrorBase {
-	return NewError(code, message, meta)
+func NewErrorCustom(code int, message string, meta map[string]any) *ErrorBase {
+	return newError(code, message, meta)
 }
 
-func ErrorUnAuthorized() *ErrorBase {
-	return NewError(
+func NewErrorUnAuthorized() *ErrorBase {
+	return newError(
 		http.StatusUnauthorized,
 		"UnAuthorized",
 		map[string]any{},
