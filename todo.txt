@@ -4,13 +4,16 @@
 ** implement hotel and rooms routes and booking route with capability of booking and get them and canceling it
 ** create single store struct that contains all stores in it
 ** add versioning pattern for booking to avoid user reservation colision
-** add status to room schema to release the room if user dont complete the payment after 10 min
 ** create rbac with role and permission
-** create proper error handling with cutom error type
-** all data layer data should be seperated from db driver(bson as input or objectid types in models)
 ** add pagination to all list return routes with mongodb options in form of size,offset and show total count
 ** set page total count in result dto
 ** turn get data like search that let user insert fields and search and get data based on them
 ** ensure that all configs be only in config folder and finally turn all to godotenv and create both .env and .env.default(deploy template)
 ** implement proper logging system
 ** write tests for handlers
+
+
+
+** add status to room schema to release the room if user dont complete the payment after 10 min
+** create proper error handling with cutom error type
+** all data layer data should be seperated from db driver(bson as input or objectid types in models)

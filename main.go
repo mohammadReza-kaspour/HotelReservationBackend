@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,9 +13,9 @@ import (
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/db"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/middlewares/auth"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/localErrors"
+	"github.com/mohammadReza-kaspour/HotelReservationBackend/types"
 )
 
-// todo!! => must move to dotenv
 const dbName = "hotelReservation"
 
 var config = fiber.Config{
@@ -33,6 +37,17 @@ var config = fiber.Config{
 }
 
 func main() {
+	stringifyInput , err := json.Marshal(map[string]any{"firstName":"Jane","lastName":"Doe","email":"jane.doe@example.com","password":"P@ssw0rd123"})
+	if err != nil {log.Fatal(err)}
+
+	var parsedInput *types.CreateUserParams;
+	if err = json.NewDecoder(bytes.NewReader(stringifyInput)).Decode(parsedInput);err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(parsedInput)
+	log.Fatal("finished")
+
+
 	listenAddr := flag.String("listenAddr", ":5000", "the listen addr of api server")
 	flag.Parse()
 

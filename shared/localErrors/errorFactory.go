@@ -8,10 +8,14 @@ func NewErrorCustom(code int, message string, meta map[string]any) *ErrorBase {
 	return newError(code, message, meta)
 }
 
-func NewErrorUnAuthorized() *ErrorBase {
+func NewErrorUnAuthorized(message ...string) *ErrorBase {
+	initMessage := "UnAuthorized"
+	if len(message) > 0 && message[0] != "" {
+		initMessage = message[0]
+	}
 	return newError(
 		http.StatusUnauthorized,
-		"UnAuthorized",
+		initMessage,
 		map[string]any{},
 	)
 }

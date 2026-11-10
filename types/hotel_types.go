@@ -22,24 +22,25 @@ type Hotel struct {
 	UpdatedAt time.Time        `bson:"updatedAt" json:"updatedAt"`
 }
 
-func NewHotel(params *CreateHotelParams) *Hotel {
+func NewHotel(params *CreateHotelParams) (*Hotel, error) {
 
 	initAmenities := []shared.Amenity{}
 	if params.Amenities != nil {
 		initAmenities = params.Amenities
 	}
 
+	now := time.Now()
 	return &Hotel{
 		Name:      params.Name,
 		City:      params.City,
 		Country:   params.Country,
 		Address:   params.Address,
-		Rate:      params.Rate,
+		Rate:      0,
 		Amenities: initAmenities,
 		Rooms:     []string{},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+		CreatedAt: now,
+		UpdatedAt: now,
+	}, nil
 }
 
 type CreateHotelParams struct {
@@ -48,12 +49,11 @@ type CreateHotelParams struct {
 	City      string           `json:"city"`
 	Country   string           `json:"country"`
 	Address   string           `json:"address"`
-	Rate      int              `json:"rate"`
 	Amenities []shared.Amenity `json:"amenities,omitempty"`
 }
 
 func (params *CreateHotelParams) Validate() error {
-	validShortStringRegexp := regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+	validShortStringRegexp := regexp.MustCompile(`^[a-zA-Z0-9 ]+$`)
 	validLongStringRegexp := regexp.MustCompile(`^[a-zA-Z0-9 _,\-]+$`)
 
 	if !validShortStringRegexp.MatchString(params.Name) {
@@ -69,10 +69,6 @@ func (params *CreateHotelParams) Validate() error {
 		return localErrors.NewErrorBadRequest("hotel address is invalid")
 	}
 
-	if params.Rate < 1 || params.Rate > 5 {
-		return localErrors.NewErrorBadRequest("rate must be between 1 and 5")
-	}
-
 	for _, amenity := range params.Amenities {
 		if !amenity.Validate() {
 			return localErrors.NewErrorBadRequest(fmt.Sprintf("amenity %s is invalid", amenity))
@@ -85,36 +81,31 @@ func (params *CreateHotelParams) Validate() error {
 type UpdateHotelParams struct {
 	// update need bson cause it will pass directly into mongodb driver
 	Id        string           `bson:"_id,omitempty" json:"id,omitempty"`
-	Name      string           `bson:"name,omitempty" json:"name,omitempty"`
-	City      string           `bson:"city,omitempty" json:"city,omitempty"`
-	Country   string           `bson:"country,omitempty" json:"country,omitempty"`
-	Address   string           `bson:"address,omitempty" json:"address,omitempty"`
-	Rate      int              `bson:"rate,omitempty" json:"rate,omitempty"`
+	Name      *string          `bson:"name,omitempty" json:"name,omitempty"`
+	City      *string          `bson:"city,omitempty" json:"city,omitempty"`
+	Country   *string          `bson:"country,omitempty" json:"country,omitempty"`
+	Address   *string          `bson:"address,omitempty" json:"address,omitempty"`
 	Amenities []shared.Amenity `bson:"amenities,omitempty" json:"amenities,omitempty"`
 }
 
 func (params *UpdateHotelParams) Validate() error {
-	validShortStringRegexp := regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+	validShortStringRegexp := regexp.MustCompile(`^[a-zA-Z0-9 ]+$`)
 	validLongStringRegexp := regexp.MustCompile(`^[a-zA-Z0-9 _,\-]+$`)
 
 	if len(params.Id) == 0 {
 		return localErrors.NewErrorBadRequest("hotel id is required")
 	}
-	if params.Name != "" && !validShortStringRegexp.MatchString(params.Name) {
+	if params.Name != nil && !validShortStringRegexp.MatchString(*params.Name) {
 		return localErrors.NewErrorBadRequest("hotel name is invalid")
 	}
-	if params.City != "" && !validShortStringRegexp.MatchString(params.City) {
+	if params.City != nil && !validShortStringRegexp.MatchString(*params.City) {
 		return localErrors.NewErrorBadRequest("hotel city is invalid")
 	}
-	if params.Country != "" && !validShortStringRegexp.MatchString(params.Country) {
+	if params.Country != nil && !validShortStringRegexp.MatchString(*params.Country) {
 		return localErrors.NewErrorBadRequest("hotel country is invalid")
 	}
-	if params.Address != "" && !validLongStringRegexp.MatchString(params.Address) {
+	if params.Address != nil && !validLongStringRegexp.MatchString(*params.Address) {
 		return localErrors.NewErrorBadRequest("hotel address is invalid")
-	}
-
-	if params.Rate != 0 && params.Rate < 1 || params.Rate > 5 {
-		return localErrors.NewErrorBadRequest("rate must be between 1 and 5")
 	}
 
 	if params.Amenities != nil {
@@ -126,4 +117,22 @@ func (params *UpdateHotelParams) Validate() error {
 	}
 
 	return nil
+}
+func (params *UpdateHotelParams) ToUpdateMap() map[string]any {
+	updateMap := map[string]any{}
+
+	updateMap["id"] = params.Id
+	derefNullable(updateMap, "name", params.Name)
+	derefNullable(updateMap, "city", params.City)
+	derefNullable(updateMap, "country", params.Country)
+	derefNullable(updateMap, "address", params.Address)
+	
+	if params.Amenities != nil {
+		updateMap["amenities"] = params.Amenities
+	}
+
+	if len(updateMap) == 0 {
+		return nil
+	}
+	return updateMap
 }

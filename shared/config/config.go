@@ -3,6 +3,7 @@ package config
 import "time"
 
 const (
-	AccessTokenExpireDelay = time.Hour * 50_000
-	RefreshTokenExpireDelay = time.Hour * 24
+	AccessTokenExpireDelay = time.Hour * 24 * 365
+	RefreshTokenExpireDelay = time.Hour * 24 * 2
+	SessionExpireTime = time.Hour * 24 * 30
 )

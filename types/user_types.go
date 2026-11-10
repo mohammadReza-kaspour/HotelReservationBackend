@@ -1,85 +1,118 @@
 package types
 
 import (
-	"fmt"
 	"regexp"
+	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/localErrors"
+	"github.com/mohammadReza-kaspour/HotelReservationBackend/types/shared"
 	"golang.org/x/crypto/bcrypt"
 )
 
 const (
-	bcryptCost         = 12
-	minFirstNameLength = 2
-	minLastNameLength  = 2
-	minPasswordLength  = 6
+	bcryptCost = 12
 )
 
 type User struct {
-	Id                primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	FirstName         string             `bson:"firstName" json:"firstName"`
-	LastName          string             `bson:"lastName" json:"lastName"`
-	Email             string             `bson:"email" json:"email"`
-	EncryptedPassword string             `bson:"encryptedPassword" json:"-"`
+	Id                string            `bson:"_id,omitempty" json:"id,omitempty"`
+	FirstName         string            `bson:"firstName" json:"firstName"`
+	LastName          string            `bson:"lastName" json:"lastName"`
+	Email             string            `bson:"email" json:"email"`
+	EncryptedPassword string            `bson:"encryptedPassword" json:"-"`
+	Role              []shared.RoleName `bson:"role" json:"role"`
+	CreatedAt         time.Time         `bson:"createdAt" json:"createdAt"`
+	UpdatedAt         time.Time         `bson:"updatedAt" json:"updatedAt"`
 }
 
-type UpdateUserParams struct {
-	FirstName string `bson:"firstName" json:"firstName"`
-	LastName  string `bson:"lastName" json:"lastName"`
-}
-
-func (params UpdateUserParams) Validate() map[string]string {
-	errors := map[string]string{}
-
-	if len(params.FirstName) < minFirstNameLength {
-		errors["firstname"] = fmt.Sprintf("firstname should be at least %d characters", minFirstNameLength)
-	}
-	if len(params.LastName) < minLastNameLength {
-		errors["lastname"] = fmt.Sprintf("lastname should be at least %d characters", minLastNameLength)
-	}
-
-	return errors
-}
-
-type CreateUserParams struct {
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Email     string `json:"email"`
-	Password  string `json:"password"`
-}
-
-func (params CreateUserParams) Validate() map[string]string {
-	errors := map[string]string{}
-
-	if len(params.FirstName) < minFirstNameLength {
-		errors["firstname"] = fmt.Sprintf("firstname should be at least %d characters", minFirstNameLength)
-	}
-	if len(params.LastName) < minLastNameLength {
-		errors["lastname"] = fmt.Sprintf("lastname should be at least %d characters", minLastNameLength)
-	}
-	if len(params.Password) < minPasswordLength {
-		errors["password"] = fmt.Sprintf("password should be at least %d characters", minPasswordLength)
-	}
-	if !isValidEmail(params.Email) {
-		errors["email"] = "email is invalid"
-	}
-	return errors
-}
-
-func isValidEmail(email string) bool {
-	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	return emailRegex.MatchString(email)
-}
-
-func NewUserFromParams(params *CreateUserParams) (*User, error) {
+func NewUser(params *CreateUserParams) (*User, error) {
 	encryptPassword, err := bcrypt.GenerateFromPassword([]byte(params.Password), bcryptCost)
 	if err != nil {
 		return nil, err
 	}
+
+	now := time.Now()
 	return &User{
-		FirstName:         params.FirstName,
-		LastName:          params.LastName,
+		FirstName:         derefString(params.FirstName),
+		LastName:          derefString(params.LastName),
 		Email:             params.Email,
 		EncryptedPassword: string(encryptPassword),
+		Role:              []shared.RoleName{shared.RoleCustomer},
+		CreatedAt:         now,
+		UpdatedAt:         now,
 	}, nil
+}
+
+func (u *User) VerifyPassword(password string) error {
+	if err := bcrypt.CompareHashAndPassword([]byte(u.EncryptedPassword), []byte(password)); err != nil {
+		return localErrors.NewErrorUnAuthorized("invalid password")
+	}
+	return nil
+}
+
+type CreateUserParams struct {
+	FirstName *string `json:"firstName"`
+	LastName  *string `json:"lastName"`
+	Email     string  `json:"email"`
+	Password  string  `json:"password"`
+}
+
+func (params *CreateUserParams) Validate() error {
+	validStringRegexp := regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+	validEmailRegexp := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	validPasswordRegexp := regexp.MustCompile(`^[a-zA-Z0-9_.\-]{8,}$`)
+
+	if params.FirstName != nil && !validStringRegexp.MatchString(*params.FirstName) {
+		return localErrors.NewErrorBadRequest("user firstName is invalid")
+	}
+	if params.LastName != nil && !validStringRegexp.MatchString(*params.LastName) {
+		return localErrors.NewErrorBadRequest("user lastName is invalid")
+	}
+	if !validEmailRegexp.MatchString(params.Email) {
+		return localErrors.NewErrorBadRequest("user email is invalid")
+	}
+	if !validPasswordRegexp.MatchString(params.Password) {
+		return localErrors.NewErrorBadRequest("user password is invalid")
+	}
+
+	return nil
+}
+
+type UpdateUserParams struct {
+	Id        string  `bson:"_id" json:"id"`
+	FirstName *string `bson:"firstName" json:"firstName"`
+	LastName  *string `bson:"lastName" json:"lastName"`
+	Email     *string `bson:"email" json:"email"`
+}
+
+func (params *UpdateUserParams) Validate() error {
+	validStringRegexp := regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+	validEmailRegexp := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+
+	if len(params.Id) == 0 {
+		return localErrors.NewErrorBadRequest("user Id is required")
+	}
+	if params.FirstName != nil && !validStringRegexp.MatchString(*params.FirstName) {
+		return localErrors.NewErrorBadRequest("user firstName is invalid")
+	}
+	if params.LastName != nil && !validStringRegexp.MatchString(*params.LastName) {
+		return localErrors.NewErrorBadRequest("user lastName is invalid")
+	}
+	if params.Email != nil && !validEmailRegexp.MatchString(*params.Email) {
+		return localErrors.NewErrorBadRequest("user email is invalid")
+	}
+
+	return nil
+}
+func (params *UpdateUserParams) ToUpdateMap() map[string]any {
+	updateMap := map[string]any{}
+
+	updateMap["id"] = params.Id
+	derefNullable(updateMap, "firstName", params.FirstName)
+	derefNullable(updateMap, "lastName", params.LastName)
+	derefNullable(updateMap, "email", params.Email)
+
+	if len(updateMap) == 0 {
+		return nil
+	}
+	return updateMap
 }

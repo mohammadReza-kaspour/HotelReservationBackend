@@ -26,7 +26,8 @@ type Room struct {
 	UpdatedAt   time.Time        `bson:"updatedAt" json:"updatedAt"`
 }
 
-func NewRoom(params *CreateRoomParams) *Room {
+func NewRoom(params *CreateRoomParams) (*Room , error) {
+	now := time.Now()
 	return &Room{
 		HotelId:     params.HotelId,
 		Title:       params.Title,
@@ -39,9 +40,9 @@ func NewRoom(params *CreateRoomParams) *Room {
 		Currency:    "IR",
 		IsAvailable: true,
 		Version:     0,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	} , nil
 }
 
 type CreateRoomParams struct {
@@ -92,14 +93,14 @@ func (params *CreateRoomParams) Validate() error {
 
 type UpdateRoomParams struct {
 	HotelId     string           `bson:"hotelId" json:"hotelId"`
-	Title       string           `bson:"title" json:"title"`
-	BedType     shared.BedType   `bson:"bedType" json:"bedType"`
-	Capacity    int              `bson:"capacity" json:"capacity"`
-	SizeSqm     float64          `bson:"sizeSqm" json:"sizeSqm"`
-	View        shared.RoomView  `bson:"view" json:"view"`
+	Title       *string           `bson:"title" json:"title"`
+	BedType     *shared.BedType   `bson:"bedType" json:"bedType"`
+	Capacity    *int              `bson:"capacity" json:"capacity"`
+	SizeSqm     *float64          `bson:"sizeSqm" json:"sizeSqm"`
+	View        *shared.RoomView  `bson:"view" json:"view"`
 	Amenities   []shared.Amenity `bson:"amenities,omitempty" json:"amenities,omitempty"`
-	Price       float64          `bson:"price" json:"price"`
-	IsAvailable bool             `bson:"isAvailable" json:"isAvailable"`
+	Price       *float64          `bson:"price" json:"price"`
+	IsAvailable *bool             `bson:"isAvailable" json:"isAvailable"`
 }
 
 func (params *UpdateRoomParams) Validate() error {
@@ -108,23 +109,23 @@ func (params *UpdateRoomParams) Validate() error {
 	if len(params.HotelId) == 0 {
 		return localErrors.NewErrorBadRequest("room hotelId is required")
 	}
-	if params.Title != "" && !validStringRegexp.MatchString(params.Title) {
+	if params.Title != nil && !validStringRegexp.MatchString(*params.Title) {
 		return localErrors.NewErrorBadRequest("room title is invalid")
 	}
-	if params.BedType != "" && !params.BedType.Validate() {
+	if params.BedType != nil && !params.BedType.Validate() {
 		return localErrors.NewErrorBadRequest("room bedType is invalid")
 	}
-	if params.View != "" && !params.View.Validate() {
+	if params.View != nil && !params.View.Validate() {
 		return localErrors.NewErrorBadRequest("room view is invalid")
 	}
 
-	if params.Capacity != 0 && params.Capacity < 0 {
+	if params.Capacity != nil && *params.Capacity < 0 {
 		return localErrors.NewErrorBadRequest("room capacity can't be negative")
 	}
-	if params.SizeSqm != 0 && params.SizeSqm < 0 {
+	if params.SizeSqm != nil && *params.SizeSqm < 0 {
 		return localErrors.NewErrorBadRequest("room sizeSqm can't be negative")
 	}
-	if params.Price != 0 && params.Price < 0 {
+	if params.Price != nil && *params.Price < 0 {
 		return localErrors.NewErrorBadRequest("room price can't be negative")
 	}
 
@@ -137,4 +138,25 @@ func (params *UpdateRoomParams) Validate() error {
 	}
 
 	return nil
+}
+func (params *UpdateRoomParams) ToUpdateMap() map[string]any {
+	updateMap := map[string]any{}
+
+	updateMap["hotelId"] = params.HotelId
+	derefNullable(updateMap, "title", params.Title)
+	derefNullable(updateMap, "bedType", params.BedType)
+	derefNullable(updateMap, "capacity", params.Capacity)
+	derefNullable(updateMap, "sizeSqm", params.SizeSqm)
+	derefNullable(updateMap, "view", params.View)
+	derefNullable(updateMap, "price", params.Price)
+	derefNullable(updateMap, "isAvailable", params.IsAvailable)
+	
+	if params.Amenities != nil {
+		updateMap["amenities"] = params.Amenities
+	}
+
+	if len(updateMap) == 0 {
+		return nil
+	}
+	return updateMap
 }
