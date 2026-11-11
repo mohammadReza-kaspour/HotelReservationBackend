@@ -17,6 +17,7 @@ import (
 
 type HotelStorage interface {
 	shared.Dropper
+	shared.Statistician
 
 	GetHotelById(ctx context.Context, id string) (*types.Hotel, error)
 	GetHotels(ctx context.Context, size *int64, page *int64) ([]*types.Hotel, error)
@@ -36,6 +37,17 @@ func NewMongoHotelStorage(db *mongo.Database) *MongoHotelStorage {
 }
 func (s *MongoHotelStorage) Drop(ctx context.Context) error {
 	return s.collection.Drop(ctx)
+}
+func (s *MongoHotelStorage) Info(ctx context.Context) (*shared.StorageInfoSchema , error) {
+	documentCount , err := s.collection.CountDocuments(ctx , bson.M{})
+	if err != nil {
+		return nil , err
+	}
+
+	info := shared.StorageInfoSchema{
+		Counts: int(documentCount),
+	}
+	return &info , nil
 }
 func (s *MongoHotelStorage) GetHotelById(ctx context.Context, id string) (*types.Hotel, error) {
 	oid, err := primitive.ObjectIDFromHex(id)

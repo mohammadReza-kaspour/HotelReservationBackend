@@ -21,3 +21,11 @@ func NewMongoDbClient() *mongo.Client {
 type Dropper interface {
 	Drop(ctx context.Context) error
 }
+type Statistician interface {
+	Info(ctx context.Context) (*StorageInfoSchema , error)
+}
+
+
+type StorageInfoSchema struct {
+	Counts int
+}

@@ -15,6 +15,7 @@ import (
 
 type SessionStorage interface {
 	shared.Dropper
+	shared.Statistician
 
 	GetSessionById(ctx context.Context, id string) (*types.Session, error)
 	GetSessions(ctx context.Context) ([]*types.Session, error)
@@ -33,6 +34,17 @@ func NewMongoSessionStorage(db *mongo.Database) *MongoSessionStorage {
 }
 func (s *MongoSessionStorage) Drop(ctx context.Context) error {
 	return s.collection.Drop(ctx)
+}
+func (s *MongoSessionStorage) Info(ctx context.Context) (*shared.StorageInfoSchema , error) {
+	documentCount , err := s.collection.CountDocuments(ctx , bson.M{})
+	if err != nil {
+		return nil , err
+	}
+
+	info := shared.StorageInfoSchema{
+		Counts: int(documentCount),
+	}
+	return &info , nil
 }
 func (s *MongoSessionStorage) GetSessionById(ctx context.Context, id string) (*types.Session, error) {
 	oid, err := primitive.ObjectIDFromHex(id)

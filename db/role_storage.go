@@ -17,6 +17,7 @@ import (
 
 type RoleStorage interface {
 	shared.Dropper
+	shared.Statistician
 
 	GetRoleById(ctx context.Context, id string) (*types.Role, error)
 	GetRoles(ctx context.Context, size *int64, page *int64) ([]*types.Role, error)
@@ -36,6 +37,17 @@ func NewMongoRoleStorage(db *mongo.Database) *MongoRoleStorage {
 }
 func (s *MongoRoleStorage) Drop(ctx context.Context) error {
 	return s.collection.Drop(ctx)
+}
+func (s *MongoRoleStorage) Info(ctx context.Context) (*shared.StorageInfoSchema , error) {
+	documentCount , err := s.collection.CountDocuments(ctx , bson.M{})
+	if err != nil {
+		return nil , err
+	}
+
+	info := shared.StorageInfoSchema{
+		Counts: int(documentCount),
+	}
+	return &info , nil
 }
 func (s *MongoRoleStorage) GetRoleById(ctx context.Context, id string) (*types.Role, error) {
 	oid, err := primitive.ObjectIDFromHex(id)

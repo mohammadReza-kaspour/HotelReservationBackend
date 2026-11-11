@@ -1,10 +1,9 @@
 package auth
 
 import (
-	"net/http"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/jwt"
+	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/localErrors"
 )
 
 type AuthHeaders struct {
@@ -13,15 +12,15 @@ type AuthHeaders struct {
 
 func VerifyJwtTokenMiddleware(c *fiber.Ctx) error {
 	var headers AuthHeaders
-	if err := c.ReqHeaderParser(&headers);err!=nil{
+	if err := c.ReqHeaderParser(&headers); err != nil {
 		return err
 	}
 
-	jwtClaim , err := jwt.VerifyJwtToken(headers.Authorization)
+	jwtClaim, err := jwt.VerifyJwtToken(headers.Authorization)
 	if err != nil {
-		return c.Status(http.StatusUnauthorized).JSON(map[string]string{"error": err.Error()})
+		return localErrors.NewErrorUnAuthorized(err.Error())
 	}
-	
-	c.Locals("user" , jwtClaim)
+
+	c.Locals("user", jwtClaim)
 	return c.Next()
 }

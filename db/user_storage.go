@@ -17,9 +17,11 @@ import (
 
 type UserStorage interface {
 	shared.Dropper
-
+	shared.Statistician
+	
 	GetUserById(ctx context.Context, id string) (*types.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*types.User, error)
+	GetUserByEmailOrNil(ctx context.Context, email string) (*types.User, error)
 	GetUsers(ctx context.Context, size *int64, page *int64) ([]*types.User, error)
 	InsertUser(ctx context.Context, user *types.User) (*types.User, error)
 	DeleteUser(ctx context.Context, id string) error
@@ -37,6 +39,17 @@ func NewMongoUserStorage(db *mongo.Database) *MongoUserStorage {
 }
 func (s *MongoUserStorage) Drop(ctx context.Context) error {
 	return s.collection.Drop(ctx)
+}
+func (s *MongoUserStorage) Info(ctx context.Context) (*shared.StorageInfoSchema , error) {
+	documentCount , err := s.collection.CountDocuments(ctx , bson.M{})
+	if err != nil {
+		return nil , err
+	}
+
+	info := shared.StorageInfoSchema{
+		Counts: int(documentCount),
+	}
+	return &info , nil
 }
 func (s *MongoUserStorage) GetUserById(ctx context.Context, id string) (*types.User, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
@@ -57,6 +70,17 @@ func (s *MongoUserStorage) GetUserById(ctx context.Context, id string) (*types.U
 func (s *MongoUserStorage) GetUserByEmail(ctx context.Context, email string) (*types.User, error) {
 	var user types.User
 	if err := s.collection.FindOne(ctx, bson.M{"email": email}).Decode(&user); err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+func (s *MongoUserStorage) GetUserByEmailOrNil(ctx context.Context, email string) (*types.User, error) {
+	var user types.User
+	if err := s.collection.FindOne(ctx, bson.M{"email": email}).Decode(&user); err != nil {
+		if errors.Is(err , mongo.ErrNoDocuments) {
+			return nil , nil
+		}
 		return nil, err
 	}
 

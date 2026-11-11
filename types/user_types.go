@@ -116,3 +116,32 @@ func (params *UpdateUserParams) ToUpdateMap() map[string]any {
 	}
 	return updateMap
 }
+
+type LoginUserParams struct {
+	Email     string  `json:"email"`
+	Password  string  `json:"password"`
+}
+func (params *LoginUserParams) Validate() error {
+	validEmailRegexp := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	validPasswordRegexp := regexp.MustCompile(`^[a-zA-Z0-9_.\-]{8,}$`)
+
+	if !validEmailRegexp.MatchString(params.Email) {
+		return localErrors.NewErrorBadRequest("user email is invalid")
+	}
+	if !validPasswordRegexp.MatchString(params.Password) {
+		return localErrors.NewErrorBadRequest("user password is invalid")
+	}
+
+	return nil
+}
+
+type RefreshTokenParams struct {
+	RefreshToken  string  `json:"refreshToken"`
+}
+func (params *RefreshTokenParams) Validate() error {
+	if len(params.RefreshToken) == 0 {
+		return localErrors.NewErrorBadRequest("refreshToken is required")
+	}
+
+	return nil
+}

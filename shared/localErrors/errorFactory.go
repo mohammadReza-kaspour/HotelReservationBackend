@@ -33,3 +33,10 @@ func NewErrorNotFound(message string) *ErrorBase {
 		map[string]any{},
 	)
 }
+func NewErrorConflict(message string) *ErrorBase {
+	return newError(
+		http.StatusConflict,
+		message,
+		map[string]any{},
+	)
+}

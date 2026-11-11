@@ -17,6 +17,7 @@ import (
 
 type RoomStorage interface {
 	shared.Dropper
+	shared.Statistician
 
 	GetRoomById(ctx context.Context, id string) (*types.Room, error)
 	GetRooms(ctx context.Context, size *int64, page *int64) ([]*types.Room, error)
@@ -36,6 +37,17 @@ func NewMongoRoomStorage(db *mongo.Database) *MongoRoomStorage {
 }
 func (s *MongoRoomStorage) Drop(ctx context.Context) error {
 	return s.collection.Drop(ctx)
+}
+func (s *MongoRoomStorage) Info(ctx context.Context) (*shared.StorageInfoSchema , error) {
+	documentCount , err := s.collection.CountDocuments(ctx , bson.M{})
+	if err != nil {
+		return nil , err
+	}
+
+	info := shared.StorageInfoSchema{
+		Counts: int(documentCount),
+	}
+	return &info , nil
 }
 func (s *MongoRoomStorage) GetRoomById(ctx context.Context, id string) (*types.Room, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
