@@ -19,21 +19,21 @@ const (
 	dbName = "hotelReservation_test"
 )
 
-type userStore struct {
+type userStorage struct {
 	//embed interface into struct <<mock on demand>> pattern to
-	//to satisfy db.UserStore without implementing every method
+	//to satisfy db.UserStorage without implementing every method
 
-	db.UserStore
+	db.UserStorage
 }
 
-func newMongoUserStore(t *testing.T) *userStore {
+func newMongoUserStorage(t *testing.T) *userStorage {
 	client := db.NewMongoDbClient()
-	return &userStore{
-		UserStore: db.NewMongoUserStore(client, dbName),
+	return &userStorage{
+		UserStorage: db.NewMongoUserStorage(client, dbName),
 	}
 }
 
-func (tdb *userStore) tearDown(t *testing.T) {
+func (tdb *userStorage) tearDown(t *testing.T) {
 	fmt.Println("--- dropping collection ---")
 	if err := tdb.Drop(context.Background()); err != nil {
 		log.Fatal(err)
@@ -42,12 +42,12 @@ func (tdb *userStore) tearDown(t *testing.T) {
 }
 
 func TestPostUser(t *testing.T) {
-	userStore := newMongoUserStore(t)
-	defer userStore.tearDown(t)
+	userStorage := newMongoUserStorage(t)
+	defer userStorage.tearDown(t)
 
 	app := fiber.New()
 
-	userHandler := NewUserHandler(userStore)
+	userHandler := NewUserHandler(userStorage)
 	app.Post("/", userHandler.HandlePostUser)
 
 	params := types.CreateUserParams{

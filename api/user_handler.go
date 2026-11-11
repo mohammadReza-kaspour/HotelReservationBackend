@@ -10,29 +10,29 @@ import (
 )
 
 type UserHandler struct {
-	userStore db.UserStore
+	userStorage db.UserStorage
 }
 
-func NewUserHandler(userStore db.UserStore) *UserHandler {
+func NewUserHandler(userStorage db.UserStorage) *UserHandler {
 	return &UserHandler{
-		userStore: userStore,
+		userStorage: userStorage,
 	}
 }
 
 func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
-	users, err := h.userStore.GetUsers(c.Context())
+	users, err := h.userStorage.GetUsers(c.Context())
 	if err != nil {
 		return err
 	}
 	return c.JSON(users)
 }
 func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
-	userInfo , ok := c.Locals("user").(*jwt.CustomClaims)
+	userInfo, ok := c.Locals("user").(*jwt.CustomClaims)
 	if !ok {
 		return errors.New("userInfo not found")
 	}
 
-	user, err := h.userStore.GetUserById(c.Context(), userInfo.UserID)
+	user, err := h.userStorage.GetUserById(c.Context(), userInfo.UserID)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	insertedUser, err := h.userStore.InsertUser(c.Context(), user)
+	insertedUser, err := h.userStorage.InsertUser(c.Context(), user)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 }
 func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
 	userId := c.Params("id")
-	if err := h.userStore.DeleteUser(c.Context(), userId); err != nil {
+	if err := h.userStorage.DeleteUser(c.Context(), userId); err != nil {
 		return err
 	}
 	return c.JSON(map[string]string{"deleted": userId})
@@ -82,8 +82,8 @@ func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 	if errors := params.Validate(); len(errors) > 0 {
 		return c.Status(400).JSON(errors)
 	}
-	
-	if err := h.userStore.UpdateUser(c.Context() , userId , params); err != nil {
+
+	if err := h.userStorage.UpdateUser(c.Context(), userId, params); err != nil {
 		return err
 	}
 

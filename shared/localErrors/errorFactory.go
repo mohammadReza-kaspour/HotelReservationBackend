@@ -26,3 +26,10 @@ func NewErrorBadRequest(message string) *ErrorBase {
 		map[string]any{},
 	)
 }
+func NewErrorNotFound(message string) *ErrorBase {
+	return newError(
+		http.StatusNotFound,
+		message,
+		map[string]any{},
+	)
+}

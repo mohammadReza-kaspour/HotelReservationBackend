@@ -11,6 +11,7 @@ import (
 
 type Hotel struct {
 	Id        string           `bson:"_id,omitempty" json:"id,omitempty"`
+	Owner     string           `bson:"owner" json:"owner"`
 	Name      string           `bson:"name" json:"name"`
 	City      string           `bson:"city" json:"city"`
 	Country   string           `bson:"country" json:"country"`
@@ -32,6 +33,7 @@ func NewHotel(params *CreateHotelParams) (*Hotel, error) {
 	now := time.Now()
 	return &Hotel{
 		Name:      params.Name,
+		Owner:     params.Owner,
 		City:      params.City,
 		Country:   params.Country,
 		Address:   params.Address,
@@ -45,6 +47,7 @@ func NewHotel(params *CreateHotelParams) (*Hotel, error) {
 
 type CreateHotelParams struct {
 	// creation doesnt need bson cause it will pass into type constructor
+	Owner     string           `json:"owner"`
 	Name      string           `json:"name"`
 	City      string           `json:"city"`
 	Country   string           `json:"country"`
@@ -56,6 +59,9 @@ func (params *CreateHotelParams) Validate() error {
 	validShortStringRegexp := regexp.MustCompile(`^[a-zA-Z0-9 ]+$`)
 	validLongStringRegexp := regexp.MustCompile(`^[a-zA-Z0-9 _,\-]+$`)
 
+	if len(params.Owner) == 0 {
+		return localErrors.NewErrorBadRequest("hotel owner is required")
+	}
 	if !validShortStringRegexp.MatchString(params.Name) {
 		return localErrors.NewErrorBadRequest("hotel name is invalid")
 	}
@@ -126,7 +132,7 @@ func (params *UpdateHotelParams) ToUpdateMap() map[string]any {
 	derefNullable(updateMap, "city", params.City)
 	derefNullable(updateMap, "country", params.Country)
 	derefNullable(updateMap, "address", params.Address)
-	
+
 	if params.Amenities != nil {
 		updateMap["amenities"] = params.Amenities
 	}

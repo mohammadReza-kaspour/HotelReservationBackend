@@ -1,23 +1,16 @@
-package db
+package shared
 
 import (
 	"context"
 	"log"
-	"time"
 
+	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const (
-	dbUri           = "mongodb://localhost:27017"
-	userCollection  = "users"
-	hotelCollection = "hotels"
-	roomCollection  = "rooms"
-)
-
 func NewMongoDbClient() *mongo.Client {
-	clientOptions := options.Client().ApplyURI(dbUri).SetTimeout(time.Second * 10)
+	clientOptions := options.Client().ApplyURI(config.DbUri).SetTimeout(config.DbConnectionTimout)
 	client, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
 		log.Fatal(err)

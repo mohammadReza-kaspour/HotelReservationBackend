@@ -6,16 +6,17 @@ import (
 )
 
 type HotelHandler struct {
-	hotelStore db.HotelStore
+	hotelStorage db.HotelStorage
 }
-func NewHotelHandler(hotelStore db.HotelStore) *HotelHandler {
+
+func NewHotelHandler(hotelStorage db.HotelStorage) *HotelHandler {
 	return &HotelHandler{
-		hotelStore: hotelStore,
+		hotelStorage: hotelStorage,
 	}
 }
 
-func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error{
-	hotels , err := h.hotelStore.GetHotels(c.Context())
+func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error {
+	hotels, err := h.hotelStorage.GetHotels(c.Context())
 	if err != nil {
 		return err
 	}

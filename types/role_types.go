@@ -54,7 +54,7 @@ type UpdateRoleParams struct {
 
 func (params *UpdateRoleParams) Validate() error {
 	if !params.Name.Valid() {
-		return localErrors.NewErrorBadRequest(fmt.Sprintf("invalid role name: %s", params.Name))
+		return localErrors.NewErrorBadRequest(fmt.Sprintf("invalid role name: %s", *params.Name))
 	}
 	for _, p := range params.Permissions {
 		if !p.Validate() {

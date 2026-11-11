@@ -11,12 +11,12 @@ import (
 )
 
 type AuthHandler struct {
-	userStore db.UserStore
+	userStorage db.UserStorage
 }
 
-func NewAuthHandler(userStore db.UserStore) *AuthHandler {
+func NewAuthHandler(userStorage db.UserStorage) *AuthHandler {
 	return &AuthHandler{
-		userStore: userStore,
+		userStorage: userStorage,
 	}
 }
 
@@ -36,7 +36,7 @@ func (h *AuthHandler) SignUp(c *fiber.Ctx) error {
 		return err
 	}
 
-	fetchedUser, err := h.userStore.GetUserByEmailElseNil(c.Context(), params.Email)
+	fetchedUser, err := h.userStorage.GetUserByEmailOrNil(c.Context(), params.Email)
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (h *AuthHandler) SignUp(c *fiber.Ctx) error {
 		return errors.New("user already exists")
 	}
 
-	insertedUser, err := h.userStore.InsertUser(c.Context(), user)
+	insertedUser, err := h.userStorage.InsertUser(c.Context(), user)
 	if err != nil {
 		return err
 	}

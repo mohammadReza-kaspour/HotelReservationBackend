@@ -1,8 +1,8 @@
 ** create response pattern for success result like error dto 
 ** make all routes jwt auth compatible
-** in types instead of object id as type use string and convert data inside storer
+** in types instead of object id as type use string and convert data inside Storager
 ** implement hotel and rooms routes and booking route with capability of booking and get them and canceling it
-** create single store struct that contains all stores in it
+** create single Storage struct that contains all Storages in it
 ** add versioning pattern for booking to avoid user reservation colision
 ** create rbac with role and permission
 ** add pagination to all list return routes with mongodb options in form of size,offset and show total count

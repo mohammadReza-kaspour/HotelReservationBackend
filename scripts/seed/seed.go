@@ -2,22 +2,16 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log"
 
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/db"
-	"github.com/mohammadReza-kaspour/HotelReservationBackend/types"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/config"
 )
-
-// todo!! => must move to dotenv
-const dbName = "hotelReservation"
 
 var (
 	ctx        = context.Background()
 	client     = db.NewMongoDbClient()
-	hotelStore = db.NewMongoHotelStore(client, dbName)
-	roomStore  = db.NewMongoRoomStore(client, hotelStore, dbName)
+	hotelStore = db.NewMongoHotelStore(client, config.DbName)
+	roomStore  = db.NewMongoRoomStore(client, hotelStore, config.DbName)
 )
 
 type seedHotelAndRoomParams struct {
@@ -26,49 +20,5 @@ type seedHotelAndRoomParams struct {
 	rate     int
 }
 
-func seedHotelAndRooms(params *seedHotelAndRoomParams) {
-	hotel := types.NewHotel(&types.CreateHotelParams{Name: params.name, Location: params.location , Rate: params.rate})
-
-	rooms := []*types.Room{
-		types.NewRoom(&types.CreateRoomParams{
-			Type:      types.SingleRoomType,
-			Price:     99.9,
-			HotelId:   primitive.NilObjectID,
-		}),
-		types.NewRoom(&types.CreateRoomParams{
-			Type:      types.DeluxeRoomType,
-			Price:     199.9,
-			HotelId:   primitive.NilObjectID,
-		}),
-		types.NewRoom(&types.CreateRoomParams{
-			Type:      types.SeaSideRoomType,
-			Price:     122.9,
-			HotelId:   primitive.NilObjectID,
-		}),
-	}
-
-	hotelInsertResult, err := hotelStore.InsertHotel(ctx, hotel)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("\n\n", params.name, params.location)
-	fmt.Printf("%+v\n", hotelInsertResult)
-	for _, room := range rooms {
-		room.HotelId = hotelInsertResult.Id
-		roomInsertResult, err := roomStore.InsertRoom(ctx, room)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Printf("%+v\n", roomInsertResult)
-	}
-}
-
 func main() {
-	hotelStore.Drop(ctx)
-	roomStore.Drop(ctx)
-
-	seedHotelAndRooms(&seedHotelAndRoomParams{name: "Espinas Palac Hotel", location: "Tehran" , rate: 3})
-	seedHotelAndRooms(&seedHotelAndRoomParams{name: "Abbasi Hotel", location: "Isfahan" , rate: 4})
-	seedHotelAndRooms(&seedHotelAndRoomParams{name: "Toranj Marine Hotel", location: "Kish Island" , rate: 1})
 }
