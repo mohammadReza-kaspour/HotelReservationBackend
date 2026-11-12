@@ -1,5 +1,3 @@
-** create response pattern for success result like error dto 
-** make all routes jwt auth compatible
 ** implement hotel and rooms routes and booking route with capability of booking and get them and canceling it
 ** add versioning pattern for booking to avoid user reservation colision
 ** create rbac with role and permission
@@ -10,6 +8,8 @@
 
 
 
+** create response pattern for success result like error dto 
+** make all routes jwt auth compatible
 ** set page total count in result dto => create schema statistic route that includes count of items
 ** add pagination to all list return routes with mongodb options in form of size,offset and show total count
 ** in types instead of object id as type use string and convert data inside Storager

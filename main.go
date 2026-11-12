@@ -7,10 +7,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/api"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/db"
+	"github.com/mohammadReza-kaspour/HotelReservationBackend/middlewares"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/localErrors"
 )
-
-const dbName = "hotelReservation"
 
 var config = fiber.Config{
 	ErrorHandler: func(c *fiber.Ctx, err error) error {
@@ -46,6 +45,15 @@ func main() {
 	app.Post("/signin", handlers.AuthHandler.SignIn)
 	app.Post("/refresh-token", handlers.AuthHandler.RefreshToken)
 	app.Post("/logout", handlers.AuthHandler.Logout)
+
+	apiV1 := app.Group("/api/v1")
+
+	apiV1Users := apiV1.Group("/user", middlewares.VerifyJwtTokenMiddleware)
+	apiV1Users.Get("/", handlers.UserHandler.GetUser)
+	apiV1Users.Put("/", handlers.UserHandler.EditUser)
+
+	apiV1Hotel := apiV1.Group("/hotel", middlewares.VerifyJwtTokenMiddleware)
+	apiV1Hotel.Post("/", handlers.HotelHandler.AddHotel)
 
 	app.Listen(*listenAddr)
 }

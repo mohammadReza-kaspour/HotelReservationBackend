@@ -8,6 +8,7 @@ import (
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/config"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/jwt"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/localErrors"
+	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/localResponse"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/types"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/types/utils"
 )
@@ -69,10 +70,11 @@ func (h *AuthHandler) SignUp(c *fiber.Ctx) error {
 	}
 	h.storage.SessionStorage.InsertSession(c.Context(), types.NewSession(newSessionParams))
 
-	return c.JSON(map[string]string{
+	response := localResponse.NewResponse(http.StatusOK, "OK", &map[string]string{
 		"AccessToken":  accessToken,
 		"RefreshToken": refreshToken,
 	})
+	return c.Status(response.Code).JSON(response)
 }
 func (h *AuthHandler) SignIn(c *fiber.Ctx) error {
 	// when user do signin its possible to create sessions as much as possible
@@ -126,10 +128,11 @@ func (h *AuthHandler) SignIn(c *fiber.Ctx) error {
 	}
 	h.storage.SessionStorage.InsertSession(c.Context(), types.NewSession(newSessionParams))
 
-	return c.JSON(map[string]string{
+	response := localResponse.NewResponse(http.StatusOK, "OK", &map[string]string{
 		"AccessToken":  accessToken,
 		"RefreshToken": refreshToken,
 	})
+	return c.Status(response.Code).JSON(response)
 }
 func (h *AuthHandler) RefreshToken(c *fiber.Ctx) error {
 	//session of user must update and new token hash replace with older one
@@ -173,14 +176,13 @@ func (h *AuthHandler) RefreshToken(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.JSON(map[string]string{
+	response := localResponse.NewResponse(http.StatusOK, "OK", &map[string]string{
 		"AccessToken":  accessToken,
 		"RefreshToken": refreshToken,
 	})
+	return c.Status(response.Code).JSON(response)
 }
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
-	//session of user must update and new token hash replace with older one
-
 	var params *utils.RefreshTokenParams
 	if err := c.BodyParser(&params); err != nil {
 		return err
@@ -206,6 +208,6 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	if err := h.storage.SessionStorage.DeleteSession(c.Context(), session.Id); err != nil {
 		return err
 	}
-
-	return c.Status(http.StatusOK).JSON(session)
+	response := localResponse.NewResponse(http.StatusOK, "OK", session)
+	return c.Status(response.Code).JSON(response)
 }

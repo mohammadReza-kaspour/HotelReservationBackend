@@ -78,7 +78,6 @@ func (params *CreateUserParams) Validate() error {
 }
 
 type UpdateUserParams struct {
-	Id        string  `bson:"_id" json:"id"`
 	FirstName *string `bson:"firstName" json:"firstName"`
 	LastName  *string `bson:"lastName" json:"lastName"`
 	Email     *string `bson:"email" json:"email"`
@@ -88,9 +87,6 @@ func (params *UpdateUserParams) Validate() error {
 	validStringRegexp := regexp.MustCompile(`^[a-zA-Z0-9]+$`)
 	validEmailRegexp := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 
-	if len(params.Id) == 0 {
-		return localErrors.NewErrorBadRequest("user Id is required")
-	}
 	if params.FirstName != nil && !validStringRegexp.MatchString(*params.FirstName) {
 		return localErrors.NewErrorBadRequest("user firstName is invalid")
 	}
@@ -106,7 +102,6 @@ func (params *UpdateUserParams) Validate() error {
 func (params *UpdateUserParams) ToUpdateMap() map[string]any {
 	updateMap := map[string]any{}
 
-	updateMap["id"] = params.Id
 	derefNullable(updateMap, "firstName", params.FirstName)
 	derefNullable(updateMap, "lastName", params.LastName)
 	derefNullable(updateMap, "email", params.Email)
@@ -118,9 +113,10 @@ func (params *UpdateUserParams) ToUpdateMap() map[string]any {
 }
 
 type LoginUserParams struct {
-	Email     string  `json:"email"`
-	Password  string  `json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
+
 func (params *LoginUserParams) Validate() error {
 	validEmailRegexp := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	validPasswordRegexp := regexp.MustCompile(`^[a-zA-Z0-9_.\-]{8,}$`)

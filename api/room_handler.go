@@ -3,13 +3,11 @@ package api
 import "github.com/mohammadReza-kaspour/HotelReservationBackend/db"
 
 type RoomHandler struct {
-	roomStorage  db.RoomStorage
-	hotelStorage db.HotelStorage
+	storage db.Storage
 }
 
-func NewRoomHandler(roomStorage db.RoomStorage, hotelStorage db.HotelStorage) *RoomHandler {
+func NewRoomHandler(storage db.Storage) *RoomHandler {
 	return &RoomHandler{
-		roomStorage:  roomStorage,
-		hotelStorage: hotelStorage,
+		storage: storage,
 	}
 }

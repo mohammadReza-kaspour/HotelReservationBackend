@@ -7,7 +7,6 @@ import (
 
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/db/shared"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/config"
-	"github.com/mohammadReza-kaspour/HotelReservationBackend/shared/localErrors"
 	"github.com/mohammadReza-kaspour/HotelReservationBackend/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -18,7 +17,7 @@ import (
 type UserStorage interface {
 	shared.Dropper
 	shared.Statistician
-	
+
 	GetUserById(ctx context.Context, id string) (*types.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*types.User, error)
 	GetUserByEmailOrNil(ctx context.Context, email string) (*types.User, error)
@@ -40,16 +39,16 @@ func NewMongoUserStorage(db *mongo.Database) *MongoUserStorage {
 func (s *MongoUserStorage) Drop(ctx context.Context) error {
 	return s.collection.Drop(ctx)
 }
-func (s *MongoUserStorage) Info(ctx context.Context) (*shared.StorageInfoSchema , error) {
-	documentCount , err := s.collection.CountDocuments(ctx , bson.M{})
+func (s *MongoUserStorage) Info(ctx context.Context) (*shared.StorageInfoSchema, error) {
+	documentCount, err := s.collection.CountDocuments(ctx, bson.M{})
 	if err != nil {
-		return nil , err
+		return nil, err
 	}
 
 	info := shared.StorageInfoSchema{
 		Counts: int(documentCount),
 	}
-	return &info , nil
+	return &info, nil
 }
 func (s *MongoUserStorage) GetUserById(ctx context.Context, id string) (*types.User, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
@@ -60,7 +59,7 @@ func (s *MongoUserStorage) GetUserById(ctx context.Context, id string) (*types.U
 	var user *types.User
 	if err := s.collection.FindOne(ctx, bson.M{"_id": oid}).Decode(&user); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, localErrors.NewErrorNotFound("document not found")
+			return nil, nil
 		}
 		return nil, err
 	}
@@ -78,8 +77,8 @@ func (s *MongoUserStorage) GetUserByEmail(ctx context.Context, email string) (*t
 func (s *MongoUserStorage) GetUserByEmailOrNil(ctx context.Context, email string) (*types.User, error) {
 	var user types.User
 	if err := s.collection.FindOne(ctx, bson.M{"email": email}).Decode(&user); err != nil {
-		if errors.Is(err , mongo.ErrNoDocuments) {
-			return nil , nil
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
 		}
 		return nil, err
 	}

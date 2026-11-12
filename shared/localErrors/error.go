@@ -7,16 +7,16 @@ type ErrorBase struct {
 	TraceId   string
 	Code      int
 	Message   string
-	Meta      map[string]any
+	Data      map[string]any
 }
 
-func newError(code int, message string, meta map[string]any) *ErrorBase {
+func newError(code int, message string, data map[string]any) *ErrorBase {
 	return &ErrorBase{
 		IsSuccess: false,
 		TraceId:   uuid.NewV4().String(),
 		Code:      code,
 		Message:   message,
-		Meta:      meta,
+		Data:      data,
 	}
 }
 func (e *ErrorBase) Error() string {
