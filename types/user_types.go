@@ -134,14 +134,3 @@ func (params *LoginUserParams) Validate() error {
 
 	return nil
 }
-
-type RefreshTokenParams struct {
-	RefreshToken  string  `json:"refreshToken"`
-}
-func (params *RefreshTokenParams) Validate() error {
-	if len(params.RefreshToken) == 0 {
-		return localErrors.NewErrorBadRequest("refreshToken is required")
-	}
-
-	return nil
-}

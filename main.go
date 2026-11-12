@@ -45,6 +45,7 @@ func main() {
 	app.Post("/signup", handlers.AuthHandler.SignUp)
 	app.Post("/signin", handlers.AuthHandler.SignIn)
 	app.Post("/refresh-token", handlers.AuthHandler.RefreshToken)
+	app.Post("/logout", handlers.AuthHandler.Logout)
 
 	app.Listen(*listenAddr)
 }
