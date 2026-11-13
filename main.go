@@ -53,7 +53,26 @@ func main() {
 	apiV1Users.Put("/", handlers.UserHandler.EditUser)
 
 	apiV1Hotel := apiV1.Group("/hotel", middlewares.VerifyJwtTokenMiddleware)
-	apiV1Hotel.Post("/", handlers.HotelHandler.AddHotel)
+	apiV1Hotel.Post("/add", handlers.HotelHandler.AddHotel)
+	apiV1Hotel.Post("/list", handlers.HotelHandler.GetHotels)
+	apiV1Hotel.Post("/get", handlers.HotelHandler.GetHotel)
+	apiV1Hotel.Post("/delete", handlers.HotelHandler.DeleteHotel)
+	apiV1Hotel.Post("/edit", handlers.HotelHandler.UpdateHotel)
+
+	apiV1HotelPublic := apiV1.Group("/hotel/pub")
+	apiV1HotelPublic.Post("/list", handlers.HotelHandler.GetHotelsPublic)
+	apiV1HotelPublic.Post("/get", handlers.HotelHandler.GetHotelPublic)
+
+	apiV1Room := apiV1.Group("/room", middlewares.VerifyJwtTokenMiddleware)
+	apiV1Room.Post("/add", handlers.RoomHandler.AddRoom)
+	apiV1Room.Post("/list", handlers.RoomHandler.GetRooms)
+	apiV1Room.Post("/get", handlers.RoomHandler.GetRoom)
+	apiV1Room.Post("/delete", handlers.RoomHandler.DeleteRoom)
+	apiV1Room.Post("/edit", handlers.RoomHandler.UpdateRoom)
+
+	apiV1RoomPublic := apiV1.Group("/room/pub")
+	apiV1RoomPublic.Post("/list", handlers.RoomHandler.GetRoomsPublic)
+	apiV1RoomPublic.Post("/get", handlers.RoomHandler.GetRoomPublic)
 
 	app.Listen(*listenAddr)
 }

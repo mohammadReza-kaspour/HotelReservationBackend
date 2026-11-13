@@ -20,4 +20,8 @@ const (
 	RefreshTokenExpireDelay = time.Hour * 24 * 2
 	SessionExpireTime       = time.Hour * 24 * 30
 	MaxAvailableSessions    = 3
+
+	//Application Defaults
+	DefaultPage = 1
+	DefaultSize = 10
 )

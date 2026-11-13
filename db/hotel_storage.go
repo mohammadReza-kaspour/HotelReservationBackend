@@ -21,9 +21,13 @@ type HotelStorage interface {
 
 	GetHotelById(ctx context.Context, id string) (*types.Hotel, error)
 	GetHotels(ctx context.Context, size *int64, page *int64) ([]*types.Hotel, error)
+	GetHotelOfOwnerById(ctx context.Context, ownerId string, id string) (*types.Hotel, error)
+	GetHotelsOfOwner(ctx context.Context, ownerId string, size *int64, page *int64) ([]*types.Hotel, error)
 	InsertHotel(ctx context.Context, hotel *types.Hotel) (*types.Hotel, error)
 	DeleteHotel(ctx context.Context, id string) error
+	DeleteHotelOfOwner(ctx context.Context, ownerId string, id string) error
 	UpdateHotel(ctx context.Context, id string, params *types.UpdateHotelParams) error
+	UpdateHotelOfOwner(ctx context.Context, ownerId string, id string, params *types.UpdateHotelParams) error
 }
 
 type MongoHotelStorage struct {
@@ -38,16 +42,16 @@ func NewMongoHotelStorage(db *mongo.Database) *MongoHotelStorage {
 func (s *MongoHotelStorage) Drop(ctx context.Context) error {
 	return s.collection.Drop(ctx)
 }
-func (s *MongoHotelStorage) Info(ctx context.Context) (*shared.StorageInfoSchema , error) {
-	documentCount , err := s.collection.CountDocuments(ctx , bson.M{})
+func (s *MongoHotelStorage) Info(ctx context.Context) (*shared.StorageInfoSchema, error) {
+	documentCount, err := s.collection.CountDocuments(ctx, bson.M{})
 	if err != nil {
-		return nil , err
+		return nil, err
 	}
 
 	info := shared.StorageInfoSchema{
 		Counts: int(documentCount),
 	}
-	return &info , nil
+	return &info, nil
 }
 func (s *MongoHotelStorage) GetHotelById(ctx context.Context, id string) (*types.Hotel, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
@@ -66,12 +70,63 @@ func (s *MongoHotelStorage) GetHotelById(ctx context.Context, id string) (*types
 	return hotel, nil
 }
 func (s *MongoHotelStorage) GetHotels(ctx context.Context, size *int64, page *int64) ([]*types.Hotel, error) {
-	var hotels []*types.Hotel
+	shared.SizeAndPageInitializer(&size, &page)
+
+	hotels := []*types.Hotel{}
 	skip := (*page - 1) * *size
 
 	cursor, err := s.collection.Find(
 		ctx,
 		bson.M{},
+		&options.FindOptions{
+			Skip:  &skip,
+			Limit: size,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	defer cursor.Close(ctx)
+	for cursor.Next(ctx) {
+		var result *types.Hotel
+		if err := cursor.Decode(&result); err != nil {
+			return nil, err
+		}
+		hotels = append(hotels, result)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return hotels, nil
+}
+func (s *MongoHotelStorage) GetHotelOfOwnerById(ctx context.Context, ownerId string, id string) (*types.Hotel, error) {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	var hotel *types.Hotel
+	if err := s.collection.FindOne(ctx, bson.M{"owner": ownerId, "_id": oid}).Decode(&hotel); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, localErrors.NewErrorNotFound("document not found")
+		}
+		return nil, err
+	}
+
+	return hotel, nil
+}
+func (s *MongoHotelStorage) GetHotelsOfOwner(ctx context.Context, ownerId string, size *int64, page *int64) ([]*types.Hotel, error) {
+	shared.SizeAndPageInitializer(&size, &page)
+
+	hotels := []*types.Hotel{}
+	skip := (*page - 1) * *size
+
+	cursor, err := s.collection.Find(
+		ctx,
+		bson.M{"owner": ownerId},
 		&options.FindOptions{
 			Skip:  &skip,
 			Limit: size,
@@ -116,6 +171,18 @@ func (s *MongoHotelStorage) DeleteHotel(ctx context.Context, id string) error {
 	}
 	return nil
 }
+func (s *MongoHotelStorage) DeleteHotelOfOwner(ctx context.Context, ownerId string, id string) error {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.collection.DeleteOne(ctx, bson.M{"owner": ownerId, "_id": oid})
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func (s *MongoHotelStorage) UpdateHotel(ctx context.Context, id string, params *types.UpdateHotelParams) error {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -126,6 +193,27 @@ func (s *MongoHotelStorage) UpdateHotel(ctx context.Context, id string, params *
 	updateMap["updatedAt"] = time.Now()
 
 	mongoFilter := bson.D{{Key: "_id", Value: oid}}
+	mongoUpdate := bson.D{
+		{Key: "$set", Value: updateMap},
+	}
+
+	_, err = s.collection.UpdateOne(ctx, mongoFilter, mongoUpdate)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+func (s *MongoHotelStorage) UpdateHotelOfOwner(ctx context.Context, ownerId string, id string, params *types.UpdateHotelParams) error {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	updateMap := params.ToUpdateMap()
+	updateMap["updatedAt"] = time.Now()
+
+	mongoFilter := bson.D{{Key: "_id", Value: oid}, {Key: "owner", Value: ownerId}}
 	mongoUpdate := bson.D{
 		{Key: "$set", Value: updateMap},
 	}

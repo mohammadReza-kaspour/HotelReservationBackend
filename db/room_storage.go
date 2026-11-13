@@ -21,6 +21,7 @@ type RoomStorage interface {
 
 	GetRoomById(ctx context.Context, id string) (*types.Room, error)
 	GetRooms(ctx context.Context, size *int64, page *int64) ([]*types.Room, error)
+	GetRoomsOfHotel(ctx context.Context, hotelId string, size *int64, page *int64) ([]*types.Room, error)
 	InsertRoom(ctx context.Context, room *types.Room) (*types.Room, error)
 	DeleteRoom(ctx context.Context, id string) error
 	UpdateRoom(ctx context.Context, id string, params *types.UpdateRoomParams) error
@@ -38,16 +39,16 @@ func NewMongoRoomStorage(db *mongo.Database) *MongoRoomStorage {
 func (s *MongoRoomStorage) Drop(ctx context.Context) error {
 	return s.collection.Drop(ctx)
 }
-func (s *MongoRoomStorage) Info(ctx context.Context) (*shared.StorageInfoSchema , error) {
-	documentCount , err := s.collection.CountDocuments(ctx , bson.M{})
+func (s *MongoRoomStorage) Info(ctx context.Context) (*shared.StorageInfoSchema, error) {
+	documentCount, err := s.collection.CountDocuments(ctx, bson.M{})
 	if err != nil {
-		return nil , err
+		return nil, err
 	}
 
 	info := shared.StorageInfoSchema{
 		Counts: int(documentCount),
 	}
-	return &info , nil
+	return &info, nil
 }
 func (s *MongoRoomStorage) GetRoomById(ctx context.Context, id string) (*types.Room, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
@@ -66,12 +67,47 @@ func (s *MongoRoomStorage) GetRoomById(ctx context.Context, id string) (*types.R
 	return room, nil
 }
 func (s *MongoRoomStorage) GetRooms(ctx context.Context, size *int64, page *int64) ([]*types.Room, error) {
-	var rooms []*types.Room
+	shared.SizeAndPageInitializer(&size, &page)
+
+	rooms := []*types.Room{}
 	skip := (*page - 1) * *size
 
 	cursor, err := s.collection.Find(
 		ctx,
 		bson.M{},
+		&options.FindOptions{
+			Skip:  &skip,
+			Limit: size,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	defer cursor.Close(ctx)
+	for cursor.Next(ctx) {
+		var result *types.Room
+		if err := cursor.Decode(&result); err != nil {
+			return nil, err
+		}
+		rooms = append(rooms, result)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return rooms, nil
+}
+func (s *MongoRoomStorage) GetRoomsOfHotel(ctx context.Context, hotelId string, size *int64, page *int64) ([]*types.Room, error) {
+	shared.SizeAndPageInitializer(&size, &page)
+
+	rooms := []*types.Room{}
+	skip := (*page - 1) * *size
+
+	cursor, err := s.collection.Find(
+		ctx,
+		bson.M{"hotelId": hotelId},
 		&options.FindOptions{
 			Skip:  &skip,
 			Limit: size,

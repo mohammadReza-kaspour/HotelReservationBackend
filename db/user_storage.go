@@ -86,6 +86,8 @@ func (s *MongoUserStorage) GetUserByEmailOrNil(ctx context.Context, email string
 	return &user, nil
 }
 func (s *MongoUserStorage) GetUsers(ctx context.Context, size *int64, page *int64) ([]*types.User, error) {
+	shared.SizeAndPageInitializer(&size, &page)
+	
 	var users []*types.User
 	skip := (*page - 1) * *size
 

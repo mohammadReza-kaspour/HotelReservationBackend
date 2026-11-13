@@ -127,7 +127,6 @@ func (params *UpdateHotelParams) Validate() error {
 func (params *UpdateHotelParams) ToUpdateMap() map[string]any {
 	updateMap := map[string]any{}
 
-	updateMap["id"] = params.Id
 	derefNullable(updateMap, "name", params.Name)
 	derefNullable(updateMap, "city", params.City)
 	derefNullable(updateMap, "country", params.Country)
